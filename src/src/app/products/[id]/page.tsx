@@ -1,7 +1,6 @@
 import ErrorDisplay from "@/components/ErrorDisplay";
 import { ProductDetailSkeleton } from "@/components/LoadingSkeleton";
 import { getProduct } from "@/lib/api";
-import { Product } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -14,15 +13,16 @@ interface ProductDetailPageProps {
 
 async function ProductDetail({ id }: { id: string }) {
   try {
-    const product = await getProduct(id);
+    // Fetch the product data
+    const productData = await getProduct(id);
 
-    // Check if product is null and handle it
-    if (!product) {
-      return <ErrorDisplay message={`Failed to load product details. The product may not exist.`} />;
+    // Handle null product case
+    if (!productData) {
+      return <ErrorDisplay message="Failed to load product details. The product may not exist." />;
     }
 
-    // At this point, we know product is not null
-    const productData: Product = product;
+    // Destructure product data for easier access
+    const { title, price, description, category, image, rating } = productData;
 
     return (
       <div className="max-w-6xl mx-auto">
@@ -30,11 +30,11 @@ async function ProductDetail({ id }: { id: string }) {
           <div className="w-full md:w-1/2 bg-white rounded-lg p-6 shadow-md">
             <div className="relative h-96 w-full bg-gray-50 rounded-md overflow-hidden">
               <div className="absolute top-4 right-4 z-10 bg-teal-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-                {productData.rating.rate} ★
+                {rating.rate} ★
               </div>
               <Image
-                src={productData.image}
-                alt={productData.title}
+                src={image}
+                alt={title}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 style={{ objectFit: "contain", padding: "2rem" }}
@@ -45,16 +45,16 @@ async function ProductDetail({ id }: { id: string }) {
           </div>
           <div className="w-full md:w-1/2">
             <span className="inline-block px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm font-medium uppercase mb-3">
-              {productData.category}
+              {category}
             </span>
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">{productData.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">{title}</h1>
             <div className="flex items-center mb-4">
               <div className="flex items-center mr-2">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <svg
                     key={i}
                     className={`w-5 h-5 ${
-                      i < Math.round(productData.rating.rate)
+                      i < Math.round(rating.rate)
                         ? "text-yellow-400"
                         : "text-gray-300"
                     }`}
@@ -66,13 +66,13 @@ async function ProductDetail({ id }: { id: string }) {
                 ))}
               </div>
               <span className="text-gray-600 text-sm">
-                {productData.rating.rate} ({productData.rating.count} reviews)
+                {rating.rate} ({rating.count} reviews)
               </span>
             </div>
-            <p className="text-2xl font-bold text-teal-700 mb-6">${productData.price.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-teal-700 mb-6">${price.toFixed(2)}</p>
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <h2 className="text-lg font-semibold mb-2">Description</h2>
-              <p className="text-gray-700">{productData.description}</p>
+              <p className="text-gray-700">{description}</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
               <button className="bg-teal-600 text-white py-3 px-8 rounded-md hover:bg-teal-700 transition-colors flex-1 flex items-center justify-center shadow-sm">
@@ -113,8 +113,9 @@ async function ProductDetail({ id }: { id: string }) {
         </div>
       </div>
     );
-  } catch {
-    return <ErrorDisplay message={`Failed to load product details. The product may not exist.`} />;
+  } catch (error) {
+    console.error("Error in ProductDetail:", error);
+    return <ErrorDisplay message="Failed to load product details. Please try again later." />;
   }
 }
 
