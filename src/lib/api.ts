@@ -1,0 +1,53 @@
+import { Product } from "@/types";
+
+const API_URL = "https://fakestoreapi.com";
+
+// Common fetch options with caching
+const fetchOptions = {
+  next: { revalidate: 3600 }, // Cache for 1 hour
+};
+
+export async function getProducts(): Promise<Product[]> {
+  try {
+    const response = await fetch(`${API_URL}/products`, fetchOptions);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch products: ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return []; // Return empty array instead of throwing to prevent app crashes
+  }
+}
+
+export async function getProduct(id: string): Promise<Product | null> {
+  try {
+    const response = await fetch(`${API_URL}/products/${id}`, fetchOptions);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch product with id ${id}: ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error(`Error fetching product ${id}:`, error);
+    return null; // Return null instead of throwing to prevent app crashes
+  }
+}
+
+export async function getCategories(): Promise<string[]> {
+  try {
+    const response = await fetch(`${API_URL}/products/categories`, fetchOptions);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch categories: ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return []; // Return empty array instead of throwing to prevent app crashes
+  }
+}
