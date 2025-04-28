@@ -1,6 +1,7 @@
 import ErrorDisplay from "@/components/ErrorDisplay";
 import { ProductDetailSkeleton } from "@/components/LoadingSkeleton";
 import { getProduct } from "@/lib/api";
+import { Product } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -15,17 +16,25 @@ async function ProductDetail({ id }: { id: string }) {
   try {
     const product = await getProduct(id);
 
+    // Check if product is null and handle it
+    if (!product) {
+      return <ErrorDisplay message={`Failed to load product details. The product may not exist.`} />;
+    }
+
+    // At this point, we know product is not null
+    const productData: Product = product;
+
     return (
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row gap-8">
           <div className="w-full md:w-1/2 bg-white rounded-lg p-6 shadow-md">
             <div className="relative h-96 w-full bg-gray-50 rounded-md overflow-hidden">
               <div className="absolute top-4 right-4 z-10 bg-teal-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-                {product.rating.rate} ★
+                {productData.rating.rate} ★
               </div>
               <Image
-                src={product.image}
-                alt={product.title}
+                src={productData.image}
+                alt={productData.title}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 style={{ objectFit: "contain", padding: "2rem" }}
@@ -36,16 +45,16 @@ async function ProductDetail({ id }: { id: string }) {
           </div>
           <div className="w-full md:w-1/2">
             <span className="inline-block px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm font-medium uppercase mb-3">
-              {product.category}
+              {productData.category}
             </span>
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">{product.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">{productData.title}</h1>
             <div className="flex items-center mb-4">
               <div className="flex items-center mr-2">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <svg
                     key={i}
                     className={`w-5 h-5 ${
-                      i < Math.round(product.rating.rate)
+                      i < Math.round(productData.rating.rate)
                         ? "text-yellow-400"
                         : "text-gray-300"
                     }`}
@@ -57,13 +66,13 @@ async function ProductDetail({ id }: { id: string }) {
                 ))}
               </div>
               <span className="text-gray-600 text-sm">
-                {product.rating.rate} ({product.rating.count} reviews)
+                {productData.rating.rate} ({productData.rating.count} reviews)
               </span>
             </div>
-            <p className="text-2xl font-bold text-teal-700 mb-6">${product.price.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-teal-700 mb-6">${productData.price.toFixed(2)}</p>
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <h2 className="text-lg font-semibold mb-2">Description</h2>
-              <p className="text-gray-700">{product.description}</p>
+              <p className="text-gray-700">{productData.description}</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
               <button className="bg-teal-600 text-white py-3 px-8 rounded-md hover:bg-teal-700 transition-colors flex-1 flex items-center justify-center shadow-sm">
